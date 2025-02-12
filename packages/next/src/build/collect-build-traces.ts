@@ -22,6 +22,7 @@ import type { NodeFileTraceReasons } from '@vercel/nft'
 import type { RoutesUsingEdgeRuntime } from './utils'
 
 const debug = debugOriginal('next:build:build-traces')
+const isRspack = process.env.NEXT_RSPACK !== undefined
 
 function shouldIgnore(
   file: string,
@@ -395,6 +396,14 @@ export async function collectBuildTraces({
         const { entryNameFilesMap } = buildTraceContext?.chunksTrace || {}
 
         const cachedLookupIgnoreRoutes = new Map<string, boolean>()
+        let chunks: string[] = []
+
+        // we aren't getting all chunks in the trace-entrypoint plugin
+        // with rspack currently so for now just add them manually for
+        // all trace files
+        if (isRspack) {
+          chunks = await fs.readdir(path.join(distDir, 'server', 'chunks'))
+        }
 
         await Promise.all(
           [
@@ -461,6 +470,19 @@ export async function collectBuildTraces({
 
             for (const file of existingTrace.files || []) {
               curTracedFiles.add(file)
+            }
+
+            if (isRspack) {
+              for (const file of chunks) {
+                curTracedFiles.add(
+                  path
+                    .relative(
+                      traceOutputDir,
+                      path.join(distDir, 'server/chunks', file)
+                    )
+                    .replace(/\\/g, '/')
+                )
+              }
             }
 
             await fs.writeFile(
