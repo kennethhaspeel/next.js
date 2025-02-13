@@ -636,5 +636,6 @@
   "635": "%s: Invalid source map. Only conformant source maps can be used to find the original code.",
   "636": "Invariant: frames must be a function when the React version has React.use. This is a bug in Next.js.",
   "637": "Invariant: frames must be an array when the React version does not have React.use. This is a bug in Next.js.",
-  "638": "The following tags are missing in the Root Layout: %s.\\nRead more at https://nextjs.org/docs/messages/missing-root-layout-tags"
+  "638": "The following tags are missing in the Root Layout: %s.\\nRead more at https://nextjs.org/docs/messages/missing-root-layout-tags",
+  "639": "@rspack/core is not available. Please make sure the appropriate Next.js plugin is installed."
 }
