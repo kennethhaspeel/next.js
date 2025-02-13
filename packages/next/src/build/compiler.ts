@@ -1,6 +1,5 @@
-import type { Span } from '../trace'
-
 import { webpack } from 'next/dist/compiled/webpack/webpack'
+import type { Span } from '../trace'
 
 export type CompilerResult = {
   errors: webpack.StatsError[]
@@ -36,7 +35,7 @@ function closeCompiler(compiler: webpack.Compiler | webpack.MultiCompiler) {
   })
 }
 
-export async function runCompiler(
+export function runCompiler(
   config: webpack.Configuration,
   {
     runWebpackSpan,
@@ -59,37 +58,34 @@ export async function runCompiler(
     }
     compiler.fsStartTime = Date.now()
     compiler.run((err, stats) => {
-      const compilerResult = runWebpackSpan
-        .traceChild('webpack-generate-error-stats')
-        .traceFn(() =>
-          generateStats({ errors: [], warnings: [], stats }, stats!)
-        )
-
       const webpackCloseSpan = runWebpackSpan.traceChild('webpack-close', {
         name: config.name || 'unknown',
       })
+      webpackCloseSpan
+        .traceAsyncFn(() => closeCompiler(compiler))
+        .then(() => {
+          if (err) {
+            const reason = err.stack ?? err.toString()
+            if (reason) {
+              return resolve([
+                {
+                  errors: [{ message: reason, details: (err as any).details }],
+                  warnings: [],
+                  stats,
+                },
+                compiler.inputFileSystem,
+              ])
+            }
+            return reject(err)
+          } else if (!stats) throw new Error('No Stats from webpack')
 
-      let closePromise = webpackCloseSpan.traceAsyncFn(() =>
-        closeCompiler(compiler)
-      )
-
-      closePromise.then(() => {
-        if (err) {
-          const reason = err.stack ?? err.toString()
-          if (reason) {
-            return resolve([
-              {
-                errors: [{ message: reason, details: (err as any).details }],
-                warnings: [],
-                stats,
-              },
-              compiler.inputFileSystem,
-            ])
-          }
-          return reject(err)
-        } else if (!stats) throw new Error('No Stats from webpack')
-        return resolve([compilerResult, compiler.inputFileSystem])
-      })
+          const result = webpackCloseSpan
+            .traceChild('webpack-generate-error-stats')
+            .traceFn(() =>
+              generateStats({ errors: [], warnings: [], stats }, stats)
+            )
+          return resolve([result, compiler.inputFileSystem])
+        })
     })
   })
 }
