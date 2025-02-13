@@ -289,15 +289,16 @@ describe('app-dir - capture-console-error', () => {
 
     const result = await getRedboxResult(browser)
 
-    if (process.env.TURBOPACK) {
-      expect(result).toMatchInlineSnapshot(`
+    if (process.env.__NEXT_EXPERIMENTAL_NEW_DEV_OVERLAY === 'true') {
+      if (process.env.TURBOPACK) {
+        expect(result).toMatchInlineSnapshot(`
        {
          "callStacks": "Page
        app/rsc/page.js (2:17)
        JSON.parse
        <anonymous> (0:0)",
          "count": 1,
-         "description": "${process.env.__NEXT_EXPERIMENTAL_NEW_DEV_OVERLAY === 'true' ? '' : '[ Server ] '}Error: boom",
+         "description": "Error: boom",
          "source": "app/rsc/page.js (2:17) @ Page
 
          1 | export default function Page() {
@@ -309,15 +310,37 @@ describe('app-dir - capture-console-error', () => {
          "title": "Console Error",
        }
       `)
+      } else {
+        expect(result).toMatchInlineSnapshot(`
+       {
+         "callStacks": "Page
+       app/rsc/page.js (2:17)
+       JSON.parse
+       <anonymous> (0:0)",
+         "count": 1,
+         "description": "Error: boom",
+         "source": "app/rsc/page.js (2:17) @ Page
+
+         1 | export default function Page() {
+       > 2 |   console.error(new Error('boom'))
+           |                 ^
+         3 |   return <p>rsc</p>
+         4 | }
+         5 |",
+         "title": "Console Error",
+       }
+      `)
+      }
     } else {
-      expect(result).toMatchInlineSnapshot(`
+      if (process.env.TURBOPACK) {
+        expect(result).toMatchInlineSnapshot(`
        {
          "callStacks": "Page
        app/rsc/page.js (2:17)
        JSON.parse
        <anonymous> (0:0)",
          "count": 1,
-         "description": "${process.env.__NEXT_EXPERIMENTAL_NEW_DEV_OVERLAY === 'true' ? '' : '[ Server ] '}Error: boom",
+         "description": "[ Server ] Error: boom",
          "source": "app/rsc/page.js (2:17) @ Page
 
          1 | export default function Page() {
@@ -329,6 +352,27 @@ describe('app-dir - capture-console-error', () => {
          "title": "Console Error",
        }
       `)
+      } else {
+        expect(result).toMatchInlineSnapshot(`
+       {
+         "callStacks": "Page
+       app/rsc/page.js (2:17)
+       JSON.parse
+       <anonymous> (0:0)",
+         "count": 1,
+         "description": "[ Server ] Error: boom",
+         "source": "app/rsc/page.js (2:17) @ Page
+
+         1 | export default function Page() {
+       > 2 |   console.error(new Error('boom'))
+           |                 ^
+         3 |   return <p>rsc</p>
+         4 | }
+         5 |",
+         "title": "Console Error",
+       }
+      `)
+      }
     }
   })
 
