@@ -7,9 +7,7 @@ import * as Log from './utils/log'
 
 const runtimes = ['nodejs', 'edge']
 
-const isReactExperimental =
-  process.env.__NEXT_EXPERIMENTAL_PPR === 'true' ||
-  process.env.__NEXT_EXPERIMENTAL_NEW_DEV_OVERLAY === 'true'
+const isReactExperimental = process.env.__NEXT_EXPERIMENTAL_PPR === 'true'
 
 describe.each(runtimes)('after() in %s runtime', (runtimeValue) => {
   const { next, isNextDeploy, skipped, isTurbopack } = nextTestSetup({
