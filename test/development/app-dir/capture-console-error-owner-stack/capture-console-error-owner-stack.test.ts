@@ -211,7 +211,7 @@ describe('app-dir - capture-console-error-owner-stack', () => {
        Page
        <anonymous> (0:0)",
          "count": 1,
-         "description": "[ Server ] Error: boom",
+         "description": "${process.env.__NEXT_EXPERIMENTAL_NEW_DEV_OVERLAY === 'true' ? '' : '[ Server ] '}Error: boom",
          "source": "app/rsc/page.js (2:17) @ Page
 
          1 | export default function Page() {
@@ -233,7 +233,7 @@ describe('app-dir - capture-console-error-owner-stack', () => {
        Page
        <anonymous> (0:0)",
          "count": 1,
-         "description": "[ Server ] Error: boom",
+         "description": "${process.env.__NEXT_EXPERIMENTAL_NEW_DEV_OVERLAY === 'true' ? '' : '[ Server ] '}Error: boom",
          "source": "app/rsc/page.js (2:17) @ Page
 
          1 | export default function Page() {
