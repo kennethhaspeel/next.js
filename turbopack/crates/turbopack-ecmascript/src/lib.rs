@@ -38,7 +38,7 @@ use std::fmt::{Display, Formatter};
 
 use anyhow::Result;
 use chunk::EcmascriptChunkItem;
-use code_gen::{CodeGenerateable, CodeGeneration, CodeGenerationHoistedStmt};
+use code_gen::{CodeGeneration, CodeGenerationHoistedStmt};
 use parse::{parse, ParseResult};
 use path_visitor::ApplyVisitors;
 use references::esm::UrlRewriteBehavior;
@@ -90,7 +90,9 @@ use crate::{
     chunk::EcmascriptChunkPlaceable,
     code_gen::CodeGens,
     parse::generate_js_source_map,
-    references::{analyse_ecmascript_module, async_module::OptionAsyncModule},
+    references::{
+        analyse_ecmascript_module, async_module::OptionAsyncModule, esm::base::EsmAssetReferences,
+    },
     transform::remove_shebang,
 };
 
@@ -424,7 +426,7 @@ impl EcmascriptAnalyzable for EcmascriptModuleAsset {
             module_type_result.module_type,
             module_graph,
             chunking_context,
-            analyze.references(),
+            (analyze.references(), *analyze_ref.esm_references),
             *analyze_ref.code_generation,
             *analyze_ref.async_module,
             generate_source_map,
@@ -760,7 +762,7 @@ impl EcmascriptModuleContent {
         specified_module_type: SpecifiedModuleType,
         module_graph: Vc<ModuleGraph>,
         chunking_context: Vc<Box<dyn ChunkingContext>>,
-        references: Vc<ModuleReferences>,
+        (references, esm_references): (Vc<ModuleReferences>, Vc<EsmAssetReferences>),
         code_generation: Vc<CodeGens>,
         async_module: Vc<OptionAsyncModule>,
         generate_source_map: Vc<bool>,
@@ -768,13 +770,6 @@ impl EcmascriptModuleContent {
         exports: Vc<EcmascriptExports>,
         async_module_info: Option<Vc<AsyncModuleInfo>>,
     ) -> Result<Vc<Self>> {
-        let mut code_gen_cells = Vec::new();
-        for r in references.await?.iter() {
-            if let Some(code_gen) = ResolvedVc::try_sidecast::<Box<dyn CodeGenerateable>>(*r) {
-                code_gen_cells.push(code_gen.code_generation(module_graph, chunking_context));
-            }
-        }
-
         let additional_code_gens = [
             if let Some(async_module) = &*async_module.await? {
                 Some(
@@ -801,17 +796,21 @@ impl EcmascriptModuleContent {
             },
         ];
 
+        let esm_code_gens = esm_references
+            .await?
+            .iter()
+            .map(|r| r.code_generation(module_graph, chunking_context))
+            .try_join()
+            .await?;
         let code_gens = code_generation
             .await?
             .iter()
             .map(|c| c.code_generation(module_graph, chunking_context))
             .try_join()
             .await?;
-        let code_gen_cells = code_gen_cells.into_iter().try_join().await?;
 
-        let code_gens = code_gen_cells
+        let code_gens = esm_code_gens
             .iter()
-            .map(|c| &**c)
             .chain(additional_code_gens.iter().flatten())
             .chain(code_gens.iter());
         gen_content_with_code_gens(
