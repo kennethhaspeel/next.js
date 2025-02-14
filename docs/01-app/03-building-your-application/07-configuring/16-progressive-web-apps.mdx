@@ -406,7 +406,7 @@ Create a new file to contain your actions at `app/actions.ts`. This file will ha
 ```tsx filename="app/actions.ts" switcher
 'use server'
 
-import webpush from 'web-push'
+import webpush, {PushSubscription} from 'web-push'
 
 webpush.setVapidDetails(
   '<mailto:your-email@example.com>',
