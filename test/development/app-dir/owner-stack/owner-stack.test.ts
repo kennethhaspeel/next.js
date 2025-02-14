@@ -130,7 +130,7 @@ describe('app-dir - owner-stack', () => {
          at renderRootSync 
          at performWorkOnRoot 
          at performWorkOnRootViaSchedulerTask 
-         at MessagePort.performWorkUntilDeadline  The above error occurred in the <Page> component. It was handled by the <DevOverlayErrorBoundary> error boundary."
+         at MessagePort.performWorkUntilDeadline  The above error occurred in the <Page> component. It was handled by the <ReactDevOverlay> error boundary."
         `)
       } else {
         expect(normalizeStackTrace(errorLog)).toMatchInlineSnapshot(`
@@ -149,7 +149,7 @@ describe('app-dir - owner-stack', () => {
          at renderRootSync 
          at performWorkOnRoot 
          at performWorkOnRootViaSchedulerTask 
-         at MessagePort.performWorkUntilDeadline  The above error occurred in the <Page> component. It was handled by the <DevOverlayErrorBoundary> error boundary."
+         at MessagePort.performWorkUntilDeadline  The above error occurred in the <Page> component. It was handled by the <ReactDevOverlay> error boundary."
         `)
       }
     }
@@ -172,17 +172,13 @@ describe('app-dir - owner-stack', () => {
       expect(stackFramesContent).toMatchInlineSnapshot(`
        "at useThrowError (app/browser/caught/page.js (34:11))
        at useErrorHook (app/browser/caught/page.js (39:3))
-       at Thrower (app/browser/caught/page.js (29:3))
-       at Inner (app/browser/caught/page.js (23:7))
-       at Page (app/browser/caught/page.js (43:10))"
+       at Thrower (app/browser/caught/page.js (29:3))"
       `)
     } else {
       expect(stackFramesContent).toMatchInlineSnapshot(`
        "at useThrowError (app/browser/caught/page.js (34:11))
        at useErrorHook (app/browser/caught/page.js (39:3))
-       at Thrower (app/browser/caught/page.js (29:3))
-       at Inner (app/browser/caught/page.js (23:8))
-       at Page (app/browser/caught/page.js (43:11))"
+       at Thrower (app/browser/caught/page.js (29:3))"
       `)
     }
 
@@ -259,7 +255,7 @@ describe('app-dir - owner-stack', () => {
        at renderRootSync 
        at performWorkOnRoot 
        at performWorkOnRootViaSchedulerTask 
-       at MessagePort.performWorkUntilDeadline  The above error occurred in the <Page> component. It was handled by the <DevOverlayErrorBoundary> error boundary."
+       at MessagePort.performWorkUntilDeadline  The above error occurred in the <Page> component. It was handled by the <ReactDevOverlay> error boundary."
       `)
     }
   })
